@@ -1,0 +1,70 @@
+{
+    "name": "@shadow-shard-tools/docs-html-generator",
+    "version": "0.1.0",
+    "description": "Static HTML generator for SST Docs content.",
+    "license": "MIT",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "sideEffects": false,
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "scripts": {
+        "clean": "rimraf dist",
+        "build": "tsc -p tsconfig.json",
+        "rebuild": "npm run clean && npm run build",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
+        "prepublishOnly": "npm run clean && npm run build"
+    },
+    "keywords": [
+        "sst",
+        "docs",
+        "html",
+        "generator",
+        "static-site"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ShadowShardTools/SST-Docs-Html-Generator-Module.git"
+    },
+    "bugs": {
+        "url": "https://github.com/ShadowShardTools/SST-Docs-Html-Generator-Module/issues"
+    },
+    "homepage": "https://github.com/ShadowShardTools/SST-Docs-Html-Generator-Module#readme",
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "chart.js": "^4.5.0",
+        "chartjs-node-canvas": "^5.0.0",
+        "fast-glob": "^3.3.3",
+        "katex": "^0.16.22",
+        "prismjs": "^1.30.0"
+    },
+    "peerDependencies": {
+        "@shadow-shard-tools/docs-core": "^1.0.20"
+    },
+    "devDependencies": {
+    "@shadow-shard-tools/docs-core": "^1.0.20",
+        "@types/node": "^20.12.7",
+        "@types/prismjs": "^1.26.5",
+        "@vitest/coverage-v8": "^4.0.7",
+        "rimraf": "^5.0.5",
+        "typescript": "^5.4.5",
+        "vitest": "^4.0.7"
+    }
+}
