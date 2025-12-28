@@ -48,6 +48,7 @@ vi.mock("@shadow-shard-tools/docs-core", () => {
     resolveAgainstProjectRoot: resolveAgainstProjectRootMock,
     resolveDataPath: resolveDataPathMock,
     loadSstDocsConfig: loadSstDocsConfigMock,
+    loadSstDocsConfigFrom: loadSstDocsConfigMock,
   };
 });
 

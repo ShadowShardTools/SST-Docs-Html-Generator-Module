@@ -68,10 +68,10 @@ describe("copyVersionAssets", () => {
         items: [
           {
             content: [
-              "/SST-Docs/data/v1/media/diagram.png",
+              "/docs/v1/media/diagram.png",
               {
                 nested: [
-                  "/SST-Docs/data/v1/media/diagram.png",
+                  "/docs/v1/media/diagram.png",
                   "https://example.com/external.png",
                 ],
               },
@@ -81,12 +81,12 @@ describe("copyVersionAssets", () => {
         tree: [
           {
             content: {
-              hero: "/SST-Docs/data/v1/media/diagram.png",
+              hero: "/docs/v1/media/diagram.png",
             },
           },
         ] as any,
         standaloneDocs: [
-          { content: ["/SST-Docs/data/v1/media/diagram.png"] },
+          { content: ["/docs/v1/media/diagram.png"] },
         ] as any,
       };
 
@@ -179,7 +179,7 @@ describe("copyVersionAssets", () => {
         versionRoot: "",
         items: [
           {
-            content: "/SST-Docs/data/v2/media/missing.png",
+            content: "/docs/v2/media/missing.png",
           },
         ] as any,
         tree: [],
@@ -195,7 +195,7 @@ describe("copyVersionAssets", () => {
 
       expect(result.mediaPaths).toEqual(["media/missing.png"]);
       const warnings = logger.warn.mock.calls.map((call) => String(call[0])).join(" ");
-      expect(warnings).toMatch(/Failed to inspect/);
+      expect(warnings).toMatch(/No CSS assets found/);
       expect(warnings).toMatch(/Prism theme/);
       expect(warnings).toMatch(/KaTeX font assets/);
       expect(warnings).toMatch(/Missing media asset/);

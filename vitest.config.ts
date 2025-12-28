@@ -2,11 +2,22 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ["tests/**/*.test.ts"],
     environment: "node",
-    reporters: "default",
+    globals: true,
+    include: ["tests/**/*.test.ts"],
+    restoreMocks: true,
+    clearMocks: true,
+    pool: "forks",
+    maxWorkers: 1,
+    isolate: false,
     coverage: {
-      reporter: ["text", "html"],
+      reporter: ["text", "lcov"],
+      thresholds: {
+        statements: 85,
+        branches: 80,
+        functions: 85,
+        lines: 85,
+      },
     },
   },
 });

@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "baseUrl": ".",
+    "paths": {
+      "@shadow-shard-tools/docs-core": [
+        "./node_modules/@shadow-shard-tools/docs-core/dist/index.d.ts"
+      ],
+      "@shadow-shard-tools/docs-core/*": [
+        "./node_modules/@shadow-shard-tools/docs-core/dist/*"
+      ],
+      "katex": ["./node_modules/katex/types/katex.d.ts"]
+    },
+    "outDir": "dist/cjs",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "verbatimModuleSyntax": false
+  }
+}

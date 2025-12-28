@@ -1,70 +1,162 @@
 {
-    "name": "@shadow-shard-tools/docs-html-generator",
-    "version": "0.1.1",
-    "description": "Static HTML generator for SST Docs content.",
-    "license": "MIT",
-    "type": "module",
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "sideEffects": false,
-    "files": [
-        "dist",
-        "README.md",
-        "LICENSE"
-    ],
-    "publishConfig": {
-        "access": "public"
+  "name": "@shadow-shard-tools/docs-html-generator",
+  "version": "0.1.1",
+  "description": "Static HTML generator for SST Docs content.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "bin": {
+    "sst-docs-html": "./dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/cjs/index.js"
     },
-    "exports": {
-        ".": {
-            "import": "./dist/index.js",
-            "types": "./dist/index.d.ts"
-        }
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/cjs/index.js"
     },
-    "scripts": {
-        "clean": "rimraf dist",
-        "build": "tsc -p tsconfig.json",
-        "rebuild": "npm run clean && npm run build",
-        "test": "vitest run",
-        "test:watch": "vitest",
-        "test:coverage": "vitest run --coverage",
-        "prepublishOnly": "npm run clean && npm run build"
+    "./index.js": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/cjs/index.js"
     },
-    "keywords": [
-        "sst",
-        "docs",
-        "html",
-        "generator",
-        "static-site"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/ShadowShardTools/SST-Docs-Html-Generator-Module.git"
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js",
+      "require": "./dist/cjs/cli.js"
     },
-    "bugs": {
-        "url": "https://github.com/ShadowShardTools/SST-Docs-Html-Generator-Module/issues"
+    "./cli.js": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js",
+      "require": "./dist/cjs/cli.js"
     },
-    "homepage": "https://github.com/ShadowShardTools/SST-Docs-Html-Generator-Module#readme",
-    "engines": {
-        "node": ">=18"
+    "./validateOutput": {
+      "types": "./dist/validateOutput.d.ts",
+      "import": "./dist/validateOutput.js",
+      "require": "./dist/cjs/validateOutput.js"
     },
-    "dependencies": {
-        "chart.js": "^4.5.0",
-        "chartjs-node-canvas": "^5.0.0",
-        "fast-glob": "^3.3.3",
-        "katex": "^0.16.22",
-        "prismjs": "^1.30.0"
+    "./validateOutput.js": {
+      "types": "./dist/validateOutput.d.ts",
+      "import": "./dist/validateOutput.js",
+      "require": "./dist/cjs/validateOutput.js"
     },
-    "peerDependencies": {
-        "@shadow-shard-tools/docs-core": "^1.0.20"
+    "./render/*": {
+      "types": "./dist/render/*.d.ts",
+      "import": "./dist/render/*.js",
+      "require": "./dist/cjs/render/*.js"
     },
-    "devDependencies": {
-    "@shadow-shard-tools/docs-core": "^1.0.20",
-        "@types/node": "^20.12.7",
-        "@types/prismjs": "^1.26.5",
-        "@vitest/coverage-v8": "^4.0.7",
-        "rimraf": "^5.0.5",
-        "typescript": "^5.4.5",
-        "vitest": "^4.0.7"
+    "./render/structure/*": {
+      "types": "./dist/render/structure/*.d.ts",
+      "import": "./dist/render/structure/*.js",
+      "require": "./dist/cjs/render/structure/*.js"
+    },
+    "./templates": {
+      "types": "./dist/templates/index.d.ts",
+      "import": "./dist/templates/index.js",
+      "require": "./dist/cjs/templates/index.js"
+    },
+    "./templates/*": {
+      "types": "./dist/templates/*.d.ts",
+      "import": "./dist/templates/*.js",
+      "require": "./dist/cjs/templates/*.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "require": "./dist/cjs/types/index.js"
+    },
+    "./types/*": {
+      "types": "./dist/types/*.d.ts",
+      "import": "./dist/types/*.js",
+      "require": "./dist/cjs/types/*.js"
+    },
+    "./utilities/*": {
+      "types": "./dist/utilities/*.d.ts",
+      "import": "./dist/utilities/*.js",
+      "require": "./dist/cjs/utilities/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc -p tsconfig.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "rebuild": "npm run clean && npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "prepublishOnly": "npm run clean && npm run lint && npm run test && npm run build"
+  },
+  "keywords": [
+    "sst",
+    "docs",
+    "html",
+    "generator",
+    "static-site"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShadowShardTools/SST-Docs-Html-Generator-Module.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ShadowShardTools/SST-Docs-Html-Generator-Module/issues"
+  },
+  "homepage": "https://github.com/ShadowShardTools/SST-Docs-Html-Generator-Module#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "chartjs-node-canvas": "^5.0.0",
+    "fast-glob": "^3.3.3",
+    "katex": "^0.16.27",
+    "prismjs": "^1.30.0"
+  },
+  "peerDependencies": {
+    "@shadow-shard-tools/docs-core": "^1.0.25"
+  },
+  "devDependencies": {
+    "@shadow-shard-tools/docs-core": "^1.0.25",
+    "@types/node": "^25.0.3",
+    "@types/prismjs": "^1.26.5",
+    "@typescript-eslint/eslint-plugin": "^8.50.1",
+    "@typescript-eslint/parser": "^8.50.1",
+    "@vitest/coverage-v8": "^4.0.16",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "globals": "^15.12.0",
+    "prettier": "^3.7.4",
+    "rimraf": "^6.1.2",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.50.1",
+    "vite": "^7.3.0",
+    "vitest": "^4.0.16"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/*",
+        "dist/*/index.d.ts",
+        "dist/*/*.d.ts"
+      ]
     }
+  }
 }

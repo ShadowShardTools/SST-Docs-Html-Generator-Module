@@ -13,6 +13,7 @@ vi.mock("@shadow-shard-tools/docs-core", () => ({
     error: vi.fn(),
   }),
   loadVersionData: loadVersionDataMock,
+  loadVersionDataFromFs: loadVersionDataMock,
 }));
 
 describe("buildVersionRenderPlan", () => {
@@ -70,14 +71,16 @@ describe("buildVersionRenderPlan", () => {
     });
 
     expect(loadVersionDataMock).toHaveBeenCalledTimes(2);
-    expect(loadVersionDataMock).toHaveBeenNthCalledWith(1, provider, expect.any(String));
-    expect(loadVersionDataMock).toHaveBeenNthCalledWith(2, provider, expect.any(String));
-    expect(
-      normalizePath(loadVersionDataMock.mock.calls[0][1] as string),
-    ).toMatch(/\/data\/1\.0\.0$/);
-    expect(
-      normalizePath(loadVersionDataMock.mock.calls[1][1] as string),
-    ).toMatch(/\/data\/2\.0\.0$/);
+    expect(loadVersionDataMock).toHaveBeenNthCalledWith(1, "/data", {
+      productVersioning: false,
+      product: undefined,
+      version: "1.0.0",
+    });
+    expect(loadVersionDataMock).toHaveBeenNthCalledWith(2, "/data", {
+      productVersioning: false,
+      product: undefined,
+      version: "2.0.0",
+    });
 
     expect(plan.entries).toHaveLength(2);
     expect(plan.entries[0].version).toBe(versions[0]);

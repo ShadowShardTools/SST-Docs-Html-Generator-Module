@@ -2,8 +2,6 @@ import { argv, exit } from "node:process";
 import { resolve } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { performance } from "node:perf_hooks";
-import { realpathSync } from "node:fs";
-import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   createLogger,
   defaultTheme,
@@ -170,8 +168,7 @@ export async function buildConfig(
 ): Promise<HtmlGeneratorRuntime> {
   const docsConfig = await loadSstDocsConfigFrom(process.cwd());
   const htmlSettings = docsConfig.HTML_GENERATOR_SETTINGS;
-  const fsDataPath = resolve(
-    process.cwd(),
+  const fsDataPath = resolveDataPath(
     overrides.dataRoot ?? docsConfig.FS_DATA_PATH,
   );
   const publicDataPath = normalizeBaseUrlPath(
@@ -293,26 +290,14 @@ export async function runCli() {
   }
 }
 
-const isCliExecution = () => {
-  const entry = argv[1];
-  if (!entry) return false;
+export async function startCli() {
   try {
-    const resolvedArg = pathToFileURL(realpathSync(resolve(entry))).href;
-    const resolvedSelf = pathToFileURL(
-      realpathSync(fileURLToPath(import.meta.url)),
-    ).href;
-    return resolvedArg === resolvedSelf;
-  } catch {
-    return false;
-  }
-};
-
-if (isCliExecution()) {
-  runCli().catch((err) => {
+    await runCli();
+  } catch (err) {
     logger.error("HTML generation failed.");
     logger.error(
       err instanceof Error ? (err.stack ?? err.message) : String(err),
     );
     exit(1);
-  });
+  }
 }

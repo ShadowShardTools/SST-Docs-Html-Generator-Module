@@ -36,6 +36,8 @@ vi.mock("@shadow-shard-tools/docs-core", () => {
       resolveDataPathMock(...args),
     loadSstDocsConfig: (...args: Parameters<typeof loadSstDocsConfigMock>) =>
       loadSstDocsConfigMock(...args),
+    loadSstDocsConfigFrom: (...args: Parameters<typeof loadSstDocsConfigMock>) =>
+      loadSstDocsConfigMock(...args),
   };
 });
 
