@@ -2,17 +2,22 @@ import { argv, exit } from "node:process";
 import { resolve } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { performance } from "node:perf_hooks";
-import { pathToFileURL } from "node:url";
+import { realpathSync } from "node:fs";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   createLogger,
   defaultTheme,
   loadVersions,
-  loadSstDocsConfig,
+  loadSstDocsConfigFrom,
   normalizeBaseUrlPath,
   resolveAgainstProjectRoot,
   resolveDataPath,
 } from "@shadow-shard-tools/docs-core";
-import type { ResolvedSstDocsConfig, StyleTheme } from "@shadow-shard-tools/docs-core/types";
+import type {
+  ResolvedSstDocsConfig,
+  StyleTheme,
+  Version,
+} from "@shadow-shard-tools/docs-core/types";
 import { FsDataProvider } from "@shadow-shard-tools/docs-core/data/fsDataProvider";
 import { buildVersionRenderPlan } from "./render/buildPlan.js";
 import { renderVersion } from "./render/renderVersion.js";
@@ -163,9 +168,10 @@ const createResolvedDocsConfig = (
 export async function buildConfig(
   overrides: BuildConfigInput,
 ): Promise<HtmlGeneratorRuntime> {
-  const docsConfig = await loadSstDocsConfig();
+  const docsConfig = await loadSstDocsConfigFrom(process.cwd());
   const htmlSettings = docsConfig.HTML_GENERATOR_SETTINGS;
-  const fsDataPath = resolveDataPath(
+  const fsDataPath = resolve(
+    process.cwd(),
     overrides.dataRoot ?? docsConfig.FS_DATA_PATH,
   );
   const publicDataPath = normalizeBaseUrlPath(
@@ -240,13 +246,19 @@ export async function runCli() {
   await ensureOutDir(config.outDir);
 
   const dataProvider = new FsDataProvider();
-  let versions = await loadVersions(
-    dataProvider,
-    config.docsConfig.FS_DATA_PATH,
-  );
-  if (config.requestedVersions.length > 0) {
-    const allowed = new Set(config.requestedVersions);
-    versions = versions.filter((version) => allowed.has(version.version));
+  const productVersioning = config.docsConfig.PRODUCT_VERSIONING ?? false;
+  let versions: Version[] = [];
+
+  if (!productVersioning) {
+    versions = await loadVersions(
+      dataProvider,
+      config.docsConfig.FS_DATA_PATH,
+    );
+
+    if (config.requestedVersions.length > 0) {
+      const allowed = new Set(config.requestedVersions);
+      versions = versions.filter((version) => allowed.has(version.version));
+    }
   }
 
   const plan = await buildVersionRenderPlan({
@@ -285,7 +297,11 @@ const isCliExecution = () => {
   const entry = argv[1];
   if (!entry) return false;
   try {
-    return pathToFileURL(entry).href === import.meta.url;
+    const resolvedArg = pathToFileURL(realpathSync(resolve(entry))).href;
+    const resolvedSelf = pathToFileURL(
+      realpathSync(fileURLToPath(import.meta.url)),
+    ).href;
+    return resolvedArg === resolvedSelf;
   } catch {
     return false;
   }

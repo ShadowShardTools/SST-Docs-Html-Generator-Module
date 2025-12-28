@@ -1,5 +1,13 @@
 import { resolve } from "node:path";
-import { createLogger, loadVersionData, type DataProvider, type Version } from "@shadow-shard-tools/docs-core";
+import {
+  createLogger,
+  loadProducts,
+  loadVersions,
+  loadVersionDataFromFs,
+  type DataProvider,
+  type Product,
+  type Version,
+} from "@shadow-shard-tools/docs-core";
 import type { RenderPlan } from "../types/index.js";
 import type { HtmlGeneratorRuntime } from "../index.js";
 
@@ -11,23 +19,70 @@ export async function buildVersionRenderPlan(params: {
   const { config, versions, provider } = params;
   const plan: RenderPlan = { entries: [] };
   const logger = createLogger("html-generator:plan");
+  const root = config.docsConfig.FS_DATA_PATH;
+  const productVersioning = config.docsConfig.PRODUCT_VERSIONING ?? false;
 
-  for (const version of versions) {
-    const root = resolve(config.docsConfig.FS_DATA_PATH, version.version);
-    const { items, tree, standaloneDocs } = await loadVersionData(
-      provider,
-      root,
-    );
-    logger.debug(
-      `Prepared version ${version.version}: ${tree.length} categories, ${items.length} docs, ${standaloneDocs.length} standalone`,
-    );
-    plan.entries.push({
-      version,
-      versionRoot: root,
-      items,
-      tree,
-      standaloneDocs,
+  const addVersionEntry = async ({
+    product,
+    version,
+  }: {
+    product?: Product;
+    version: Version;
+  }) => {
+    const data = await loadVersionDataFromFs(root, {
+      productVersioning,
+      product: product?.product,
+      version: version.version,
     });
+
+    logger.debug(
+      `Prepared ${product ? `product ${product.product} / ` : ""}version ${version.version}: ${data.tree.length} categories, ${data.items.length} docs, ${data.standaloneDocs.length} standalone`,
+    );
+
+    plan.entries.push({
+      product,
+      version,
+      versionRoot: resolve(
+        root,
+        product ? product.product : "",
+        version.version,
+      ),
+      items: data.items,
+      tree: data.tree,
+      standaloneDocs: data.standaloneDocs,
+    });
+  };
+
+  if (!productVersioning) {
+    for (const version of versions) {
+      await addVersionEntry({ version });
+    }
+    return plan;
+  }
+
+  const products = await loadProducts(provider, root);
+  if (products.length === 0) {
+    logger.warn(
+      "PRODUCT_VERSIONING is enabled but no products were found; falling back to single-root rendering.",
+    );
+    for (const version of versions) {
+      await addVersionEntry({ version });
+    }
+    return plan;
+  }
+
+  for (const product of products) {
+    const productRoot = resolve(root, product.product);
+    let productVersions = await loadVersions(provider, productRoot);
+
+    if (config.requestedVersions.length > 0) {
+      const allowed = new Set(config.requestedVersions);
+      productVersions = productVersions.filter((v) => allowed.has(v.version));
+    }
+
+    for (const version of productVersions) {
+      await addVersionEntry({ product, version });
+    }
   }
 
   return plan;

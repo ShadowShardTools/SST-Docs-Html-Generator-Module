@@ -64,9 +64,13 @@ const makeDocumentEntry = ({
 
 export const buildNavigationIndex = (
   entry: VersionRenderEntry,
-  config: ResolvedSstDocsConfig
+  config: ResolvedSstDocsConfig,
 ): NavigationIndex => {
-  const baseUrl = joinUrl(config.PUBLIC_DATA_PATH, entry.version.version);
+  const baseUrl = joinUrl(
+    config.PUBLIC_DATA_PATH,
+    entry.product?.product ?? "",
+    entry.version.version,
+  );
   const categories = new Map<string, NavCategoryEntry>();
   const documents = new Map<string, NavDocumentEntry>();
   const treeEntries: NavCategoryEntry[] = [];

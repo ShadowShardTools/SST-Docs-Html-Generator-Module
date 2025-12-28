@@ -23,7 +23,38 @@ const COMPARE_STYLE_TARGET = "static-compare.css";
 const KATEX_PREFIX = "KaTeX_";
 
 const KATEX_URL_PATTERN = /url\((['"]?)\/SST-Docs\/assets\//g;
-const MEDIA_PATH_REGEX = /^\/?SST-Docs\/data\/([^/]+)\/(.+)$/i;
+const stripProtocol = (value: string) =>
+  value.replace(/^[a-z]+:\/\/[^/]+/i, "");
+
+const normalizePublicPath = (value: string | undefined) =>
+  (value ?? "").replace(/^\/+|\/+$/g, "");
+
+const matchMediaPath = (
+  value: string,
+  entry: VersionRenderEntry,
+  publicBase: string,
+): string | undefined => {
+  const cleaned = stripProtocol(value).replace(/^\/+/, "");
+  const baseSegments = normalizePublicPath(publicBase)
+    .split("/")
+    .filter(Boolean);
+  const parts = cleaned.split("/").filter(Boolean);
+
+  for (let i = 0; i < baseSegments.length; i += 1) {
+    if (parts[i] !== baseSegments[i]) return undefined;
+  }
+
+  let index = baseSegments.length;
+  if (entry.product) {
+    if (parts[index] !== entry.product.product) return undefined;
+    index += 1;
+  }
+
+  if (parts[index] !== entry.version.version) return undefined;
+  index += 1;
+
+  return parts.slice(index).join("/");
+};
 
 const STATIC_CODE_TABS_CSS = `/* Static code block enhancements */
 .static-code-block { background-color: inherit; border-radius: inherit; position: relative; }
@@ -82,64 +113,72 @@ const STATIC_COMPARE_CSS = `/* Static image comparison slider */
 
 async function copyKaTeXAssets(
   assetsDir: string,
-  projectRoot: string,
+  roots: string[],
   logger: Logger,
 ): Promise<void> {
-  const sourceDir = resolve(projectRoot, ASSET_SOURCE_DIR);
   const targetDir = assetsDir;
 
-  try {
-    await mkdir(targetDir, { recursive: true });
-    const entries = await readdir(sourceDir, { withFileTypes: true });
-    await Promise.all(
-      entries
-        .filter(
-          (entry) => entry.isFile() && entry.name.startsWith(KATEX_PREFIX),
-        )
-        .map((entry) =>
+  for (const root of roots) {
+    const sourceDir = resolve(root, ASSET_SOURCE_DIR);
+    try {
+      await mkdir(targetDir, { recursive: true });
+      const entries = await readdir(sourceDir, { withFileTypes: true });
+      const fontEntries = entries.filter(
+        (entry) => entry.isFile() && entry.name.startsWith(KATEX_PREFIX),
+      );
+      if (fontEntries.length === 0) {
+        continue;
+      }
+      await Promise.all(
+        fontEntries.map((entry) =>
           copyFile(join(sourceDir, entry.name), join(targetDir, entry.name)),
         ),
-    );
-    logger.debug("Copied KaTeX font assets");
-  } catch (error) {
-    logger.warn(
-      `Failed to copy KaTeX font assets. Math blocks may render incorrectly offline. (${String(
-        error,
-      )})`,
-    );
+      );
+      logger.debug(`Copied KaTeX font assets from ${sourceDir}`);
+      return;
+    } catch {
+      continue;
+    }
   }
+
+  logger.warn(
+    `Failed to copy KaTeX font assets. Checked: ${roots
+      .map((root) => resolve(root, ASSET_SOURCE_DIR))
+      .join(", ")}. Math blocks may render incorrectly offline.`,
+  );
 }
 
 const locateStylesheetSource = async (
-  cwd: string,
+  roots: string[],
   logger: Logger,
 ): Promise<{ absolutePath: string; fileName: string } | null> => {
-  const assetsDir = resolve(cwd, ASSET_SOURCE_DIR);
-  try {
-    const entries = await readdir(assetsDir, { withFileTypes: true });
-    const cssFiles = entries
-      .filter((entry) => entry.isFile() && entry.name.endsWith(".css"))
-      .map((entry) => entry.name);
-    if (!cssFiles.length) {
-      logger.warn(
-        "No CSS assets found in dist. Run `npm run build` before generating static HTML.",
-      );
-      return null;
+  for (const root of roots) {
+    const assetsDir = resolve(root, ASSET_SOURCE_DIR);
+    try {
+      const entries = await readdir(assetsDir, { withFileTypes: true });
+      const cssFiles = entries
+        .filter((entry) => entry.isFile() && entry.name.endsWith(".css"))
+        .map((entry) => entry.name);
+      if (!cssFiles.length) {
+        continue;
+      }
+      const primary =
+        cssFiles.find((name) => /^index-.*\.css$/i.test(name)) ?? cssFiles[0];
+      return {
+        absolutePath: resolve(assetsDir, primary),
+        fileName: primary,
+      };
+    } catch {
+      continue;
     }
-    const primary =
-      cssFiles.find((name) => /^index-.*\.css$/i.test(name)) ?? cssFiles[0];
-    return {
-      absolutePath: resolve(assetsDir, primary),
-      fileName: primary,
-    };
-  } catch (error) {
-    logger.warn(
-      `Failed to inspect ${ASSET_SOURCE_DIR} for stylesheet assets. (${String(
-        error,
-      )})`,
-    );
-    return null;
   }
+
+  logger.warn(
+    `No CSS assets found. Checked: ${roots
+      .map((root) => resolve(root, ASSET_SOURCE_DIR))
+      .join(", ")}`,
+  );
+  return null;
 };
 
 async function copyStylesheet(
@@ -147,7 +186,10 @@ async function copyStylesheet(
   projectRoot: string,
   logger: Logger,
 ): Promise<void> {
-  const located = await locateStylesheetSource(projectRoot, logger);
+  const located = await locateStylesheetSource(
+    [projectRoot, process.cwd()],
+    logger,
+  );
   if (!located) return;
 
   const { absolutePath: sourcePath, fileName } = located;
@@ -225,49 +267,48 @@ async function writeStaticCompareStyles(assetsDir: string, logger: Logger) {
 const collectMediaPathsFromValue = (
   value: unknown,
   paths: Set<string>,
-  currentVersion: string,
+  entry: VersionRenderEntry,
+  publicBase: string,
 ) => {
   if (!value) return;
 
   if (typeof value === "string") {
-    const match = value.match(MEDIA_PATH_REGEX);
-    if (match) {
-      const versionId = match[1];
-      const pathInsideVersion = match[2];
-      if (versionId === currentVersion) {
-        const normalized = normalize(pathInsideVersion).replace(/^[\\/]+/, "");
-        paths.add(normalized);
-      }
+    const insideVersion = matchMediaPath(value, entry, publicBase);
+    if (insideVersion) {
+      const normalized = normalize(insideVersion).replace(/^[\\/]+/, "");
+      paths.add(normalized);
     }
     return;
   }
 
   if (Array.isArray(value)) {
     value.forEach((item) =>
-      collectMediaPathsFromValue(item, paths, currentVersion),
+      collectMediaPathsFromValue(item, paths, entry, publicBase),
     );
     return;
   }
 
   if (typeof value === "object") {
     Object.values(value as Record<string, unknown>).forEach((item) =>
-      collectMediaPathsFromValue(item, paths, currentVersion),
+      collectMediaPathsFromValue(item, paths, entry, publicBase),
     );
   }
 };
 
-const collectMediaPaths = (entry: VersionRenderEntry): Set<string> => {
+const collectMediaPaths = (
+  entry: VersionRenderEntry,
+  publicBase: string,
+): Set<string> => {
   const paths = new Set<string>();
-  const versionId = entry.version.version;
 
   entry.items.forEach((doc) => {
-    collectMediaPathsFromValue(doc.content, paths, versionId);
+    collectMediaPathsFromValue(doc.content, paths, entry, publicBase);
   });
   entry.tree.forEach((category) => {
-    collectMediaPathsFromValue(category.content, paths, versionId);
+    collectMediaPathsFromValue(category.content, paths, entry, publicBase);
   });
   entry.standaloneDocs.forEach((doc) => {
-    collectMediaPathsFromValue(doc.content, paths, versionId);
+    collectMediaPathsFromValue(doc.content, paths, entry, publicBase);
   });
 
   return paths;
@@ -285,12 +326,17 @@ async function copyReferencedMedia(
   if (mediaPaths.length === 0) return;
 
   const publicRoot = config.docsConfig.FS_DATA_PATH;
-  const versionOutDir = resolve(config.outDir, entry.version.version);
+  const versionOutDir = resolve(
+    config.outDir,
+    entry.product ? entry.product.product : "",
+    entry.version.version,
+  );
 
   await Promise.all(
     mediaPaths.map(async (insideVersionPath) => {
       const sourcePath = resolve(
         publicRoot,
+        entry.product ? entry.product.product : "",
         entry.version.version,
         insideVersionPath,
       );
@@ -305,23 +351,32 @@ async function copyReferencedMedia(
           return;
         }
       } catch (error) {
-        logger.warn(
-          `Missing media asset referenced in version ${entry.version.version}: ${insideVersionPath} (${String(
-            error,
-          )})`,
-        );
+          const targetLabel = entry.product
+            ? `${entry.product.product} / ${entry.version.version}`
+            : entry.version.version;
+          logger.warn(
+            `Missing media asset referenced in version ${targetLabel}: ${insideVersionPath} (${String(
+              error,
+            )})`,
+          );
         return;
       }
 
       try {
         await mkdir(dirname(targetPath), { recursive: true });
         await copyFile(sourcePath, targetPath);
+        const targetLabel = entry.product
+          ? `${entry.product.product} / ${entry.version.version}`
+          : entry.version.version;
         logger.debug(
-          `Copied media asset for ${entry.version.version}: ${insideVersionPath}`,
+          `Copied media asset for ${targetLabel}: ${insideVersionPath}`,
         );
       } catch (error) {
+        const targetLabel = entry.product
+          ? `${entry.product.product} / ${entry.version.version}`
+          : entry.version.version;
         logger.warn(
-          `Failed to copy media asset ${insideVersionPath} for ${entry.version.version}: ${String(
+          `Failed to copy media asset ${insideVersionPath} for ${targetLabel}: ${String(
             error,
           )}`,
         );
@@ -382,19 +437,22 @@ export async function copyVersionAssets(
   assetsDir: string,
   options?: { projectRoot?: string },
 ): Promise<{ mediaPaths: string[] }> {
-  const mediaPaths = Array.from(collectMediaPaths(entry))
+  const mediaPaths = Array.from(
+    collectMediaPaths(entry, config.docsConfig.PUBLIC_DATA_PATH),
+  )
     .map((path) => path.replace(/\\/g, "/"))
     .sort();
 
   const projectRoot =
     options?.projectRoot ?? resolveAgainstProjectRoot(".");
+  const assetRoots = [projectRoot, process.cwd()];
 
   await copyStylesheet(assetsDir, projectRoot, logger);
   await copyPrismTheme(assetsDir, projectRoot, logger);
   await writeStaticCodeStyles(assetsDir, logger);
   await writeStaticCarouselStyles(assetsDir, logger);
   await writeStaticCompareStyles(assetsDir, logger);
-  await copyKaTeXAssets(assetsDir, projectRoot, logger);
+  await copyKaTeXAssets(assetsDir, assetRoots, logger);
   await writeAssetsManifest(assetsDir, projectRoot, logger);
   await copyReferencedMedia(entry, config, logger, mediaPaths);
 

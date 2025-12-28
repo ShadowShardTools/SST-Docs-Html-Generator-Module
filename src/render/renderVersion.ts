@@ -14,7 +14,38 @@ import { renderCategoryPage } from "./structure/renderCategory.js";
 import { renderDocumentPage } from "./structure/renderDocument.js";
 import { renderPageShell } from "./structure/pageShell.js";
 
-const MEDIA_PATH_REGEX = /^\/?SST-Docs\/data\/([^/]+)\/(.+)$/i;
+const stripProtocol = (value: string) =>
+  value.replace(/^[a-z]+:\/\/[^/]+/i, "");
+
+const normalizePublicPath = (value: string | undefined) =>
+  (value ?? "").replace(/^\/+|\/+$/g, "");
+
+const matchAssetPath = (
+  original: string,
+  entry: VersionRenderEntry,
+  publicBase: string,
+): string | undefined => {
+  const cleaned = stripProtocol(original).replace(/^\/+/, "");
+  const baseSegments = normalizePublicPath(publicBase)
+    .split("/")
+    .filter(Boolean);
+  const parts = cleaned.split("/").filter(Boolean);
+
+  for (let i = 0; i < baseSegments.length; i += 1) {
+    if (parts[i] !== baseSegments[i]) return undefined;
+  }
+
+  let index = baseSegments.length;
+  if (entry.product) {
+    if (parts[index] !== entry.product.product) return undefined;
+    index += 1;
+  }
+
+  if (parts[index] !== entry.version.version) return undefined;
+  index += 1;
+
+  return parts.slice(index).join("/");
+};
 
 const getDefaultDocument = (
   navIndex: NavigationIndex,
@@ -39,7 +70,11 @@ export async function renderVersion(
   logger: Logger,
 ) {
   const docsConfig = config.docsConfig;
-  const versionBaseDir = resolve(config.outDir, entry.version.version);
+  const versionBaseDir = resolve(
+    config.outDir,
+    entry.product ? entry.product.product : "",
+    entry.version.version,
+  );
   const siteOutDir = config.separateBuild
     ? versionBaseDir
     : resolve(versionBaseDir, "static");
@@ -82,15 +117,22 @@ export async function renderVersion(
     };
 
     const resolveAssetHref = (original: string) => {
-      const match = original.match(MEDIA_PATH_REGEX);
-      if (!match) return original;
-      const [, versionId, insideVersion] = match;
-      if (versionId !== entry.version.version) return original;
+      const insideVersion = matchAssetPath(
+        original,
+        entry,
+        docsConfig.PUBLIC_DATA_PATH,
+      );
+      if (!insideVersion) return original;
       if (!config.separateBuild) {
         const logicalTarget = insideVersion.replace(/\\/g, "/");
         return toLogicalHref(logicalTarget);
       }
-      const assetPath = resolve(config.outDir, versionId, insideVersion);
+      const assetPath = resolve(
+        config.outDir,
+        entry.product ? entry.product.product : "",
+        entry.version.version,
+        insideVersion,
+      );
       let rel = relative(pageDir, assetPath).replace(/\\/g, "/");
       if (!rel.startsWith(".") && !rel.startsWith("..")) {
         rel = `./${rel}`;
@@ -148,8 +190,11 @@ export async function renderVersion(
     );
     await writeFile(landingPath, landingHtml, "utf8");
   } else {
+    const targetLabel = entry.product
+      ? `${entry.product.product} / ${entry.version.version}`
+      : entry.version.version;
     logger.warn(
-      `No documentation pages available to render default landing for ${entry.version.version}`,
+      `No documentation pages available to render default landing for ${targetLabel}`,
     );
     const placeholderContent = `<div class="px-2 md:px-6">
     <div class="max-w-4xl mx-auto py-12 text-center text-gray-500">
@@ -229,6 +274,7 @@ export async function renderVersion(
   );
   const staticStylesPath = relative(siteOutDir, assetsDir).replace(/\\/g, "/");
   const manifest = {
+    product: entry.product?.product,
     version: entry.version.version,
     generatedAt: new Date().toISOString(),
     index: "index.html",
@@ -245,9 +291,9 @@ export async function renderVersion(
     "utf8",
   );
 
-  logger.info(
-    `Rendered static HTML for ${entry.version.version} -> ${resolve(
-      siteOutDir,
-    )}`,
-  );
+  const targetLabel = entry.product
+    ? `${entry.product.product} / ${entry.version.version}`
+    : entry.version.version;
+
+  logger.info(`Rendered static HTML for ${targetLabel} -> ${resolve(siteOutDir)}`);
 }
