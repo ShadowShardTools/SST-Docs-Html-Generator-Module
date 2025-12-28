@@ -1,6 +1,7 @@
 import { type Category, type DocItem, type ResolvedSstDocsConfig } from "@shadow-shard-tools/docs-core";
-import { joinRelativePath, joinUrl } from "../../utilities/paths.js";
+
 import type { NavCategoryEntry, NavDocumentEntry, NavigationIndex, VersionRenderEntry } from "../../types/index.js";
+import { joinRelativePath, joinUrl } from "../../utilities/paths.js";
 
 const CATEGORY_DIR = "categories";
 const DOC_DIR = "docs";

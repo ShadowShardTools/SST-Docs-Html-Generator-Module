@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve, relative } from "node:path";
-import { ChartJSNodeCanvas } from "chartjs-node-canvas";
+
+import type { ChartData, Content, Logger, StyleTheme } from "@shadow-shard-tools/docs-core";
 import {
   Chart as ChartJS,
   BarElement,
@@ -18,7 +19,8 @@ import {
   Filler,
 } from "chart.js";
 import type { ChartConfiguration, ChartType, DefaultDataPoint } from "chart.js";
-import type { ChartData, Content, Logger, StyleTheme } from "@shadow-shard-tools/docs-core";
+import { ChartJSNodeCanvas } from "chartjs-node-canvas";
+
 import type { ChartAssetInfo } from "../types/index.js";
 
 ChartJS.register(
@@ -105,6 +107,12 @@ const normaliseChartType = (rawType?: string): ChartType => {
   return mapped ? mapped : "bar";
 };
 
+type InputDataset = ChartData["datasets"][number] &
+  Partial<ChartConfiguration["data"]["datasets"][number]> & {
+    pointRadius?: number;
+    pointHoverRadius?: number;
+  };
+
 const buildChartConfiguration = (
   chartData: ChartData,
   theme: StyleTheme["chart"],
@@ -116,7 +124,7 @@ const buildChartConfiguration = (
     size: 22,
   };
 
-  const sourceDatasets = chartData.datasets || [];
+  const sourceDatasets: InputDataset[] = chartData.datasets || [];
   const enhancedDatasets = sourceDatasets.map((dataset) => {
     const needsThickerLine =
       type === "line" || type === "scatter" || type === "radar";
@@ -129,16 +137,16 @@ const buildChartConfiguration = (
     const extras: Record<string, unknown> = {};
 
     if (lineCompatible) {
-      if ((dataset as any).borderWidth === undefined) {
+      if (dataset.borderWidth === undefined) {
         extras.borderWidth = defaultBorderWidth;
       }
-      if ((dataset as any).pointRadius === undefined) {
+      if (dataset.pointRadius === undefined) {
         extras.pointRadius = defaultPointRadius;
       }
-      if ((dataset as any).pointHoverRadius === undefined) {
+      if (dataset.pointHoverRadius === undefined) {
         extras.pointHoverRadius = defaultPointHoverRadius;
       }
-    } else if ((dataset as any).borderWidth === undefined) {
+    } else if (dataset.borderWidth === undefined) {
       extras.borderWidth = defaultBorderWidth;
     }
 

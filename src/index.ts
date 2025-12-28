@@ -1,7 +1,8 @@
-import { argv, exit } from "node:process";
-import { resolve } from "node:path";
 import { mkdir } from "node:fs/promises";
+import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
+import { argv, exit } from "node:process";
+
 import {
   createLogger,
   defaultTheme,
@@ -11,12 +12,13 @@ import {
   resolveAgainstProjectRoot,
   resolveDataPath,
 } from "@shadow-shard-tools/docs-core";
+import { FsDataProvider } from "@shadow-shard-tools/docs-core/data/fsDataProvider";
 import type {
   ResolvedSstDocsConfig,
   StyleTheme,
   Version,
 } from "@shadow-shard-tools/docs-core/types";
-import { FsDataProvider } from "@shadow-shard-tools/docs-core/data/fsDataProvider";
+
 import { buildVersionRenderPlan } from "./render/buildPlan.js";
 import { renderVersion } from "./render/renderVersion.js";
 
@@ -218,7 +220,6 @@ export async function buildConfig(
 }
 
 const printHelp = () => {
-  // eslint-disable-next-line no-console
   console.log(HELP_TEXT.trimEnd());
 };
 

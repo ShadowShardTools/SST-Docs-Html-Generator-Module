@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import type { RenderContext } from "../src/types/index.js";
+
 import { renderContentBlock } from "../src/templates/blocks.ts";
+import type { RenderContext } from "../src/types/index.js";
 
 const baseStyles = {
   text: {

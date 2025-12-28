@@ -7,12 +7,14 @@ import {
   stat,
   readdir,
 } from "node:fs/promises";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { describe, expect, it, vi } from "vitest";
+
 import type { HtmlGeneratorRuntime } from "../src/index.js";
-import type { VersionRenderEntry } from "../src/types/index.js";
 import { copyVersionAssets } from "../src/render/copyAssets.ts";
+import type { VersionRenderEntry } from "../src/types/index.js";
 
 const createLogger = () => ({
   debug: vi.fn(),

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { HtmlGeneratorRuntime } from "../src/index.js";
 
 const loadVersionDataMock = vi.fn();

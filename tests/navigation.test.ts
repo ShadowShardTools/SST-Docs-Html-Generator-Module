@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
 import type { ResolvedSstDocsConfig } from "@shadow-shard-tools/docs-core/types";
+import { describe, expect, it } from "vitest";
+
 import { buildNavigationIndex } from "../src/render/structure/navigation.ts";
 import type { VersionRenderEntry } from "../src/types/index.js";
 

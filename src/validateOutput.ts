@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import { argv, exit } from "node:process";
 import { readFile } from "node:fs/promises";
-import fg from "fast-glob";
+import { argv, exit } from "node:process";
+
 import { createLogger, pathExists, resolveAgainstProjectRoot } from "@shadow-shard-tools/docs-core";
+import fg from "fast-glob";
 
 interface Options {
   outDir: string;
@@ -31,7 +32,7 @@ function parseArgs(): Options {
     } else if (arg === "--no-fail-on-missing") {
       options.failOnMissing = false;
     } else if (arg === "--help" || arg === "-h") {
-      // eslint-disable-next-line no-console
+       
       console.log(`Validate generated HTML output.
 
 Usage:

@@ -1,5 +1,3 @@
-import { resolve, join, dirname, normalize, relative } from "node:path";
-import { resolveAgainstProjectRoot } from "@shadow-shard-tools/docs-core";
 import {
   mkdir,
   copyFile,
@@ -8,7 +6,11 @@ import {
   readdir,
   stat,
 } from "node:fs/promises";
+import { resolve, join, dirname, normalize, relative } from "node:path";
+
+import { resolveAgainstProjectRoot } from "@shadow-shard-tools/docs-core";
 import type { Logger } from "@shadow-shard-tools/docs-core/types";
+
 import type { HtmlGeneratorRuntime } from "../index.js";
 import type { VersionRenderEntry } from "../types/VersionRenderEntry.js";
 

@@ -1,18 +1,21 @@
-import { resolve, dirname, relative, posix as pathPosix } from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
+import { resolve, dirname, relative, posix as pathPosix } from "node:path";
+
 import type { ChartData, Logger } from "@shadow-shard-tools/docs-core";
+
 import type { HtmlGeneratorRuntime } from "../index.js";
 import type {
   NavDocumentEntry,
   NavigationIndex,
   VersionRenderEntry,
 } from "../types/index.js";
+
 import { ChartAssetManager } from "./chartAssets.js";
 import { copyVersionAssets } from "./copyAssets.js";
 import { buildNavigationIndex } from "./structure/navigation.js";
+import { renderPageShell } from "./structure/pageShell.js";
 import { renderCategoryPage } from "./structure/renderCategory.js";
 import { renderDocumentPage } from "./structure/renderDocument.js";
-import { renderPageShell } from "./structure/pageShell.js";
 
 const stripProtocol = (value: string) =>
   value.replace(/^[a-z]+:\/\/[^/]+/i, "");

@@ -1,4 +1,5 @@
 import { ALIGNMENT_CLASSES, slugify, SPACING_CLASSES, type Content } from "@shadow-shard-tools/docs-core";
+
 import type { RenderContext } from "../types/index.js";
 
 type SpacingKey = keyof typeof SPACING_CLASSES;
@@ -79,7 +80,7 @@ export const getBlockSpacing = (block: Content) => {
       | undefined;
     return data?.spacing;
   }
-  return (block as any).spacing;
+  return (block as { spacing?: string }).spacing;
 };
 
 export const slugFromTitle = (title?: string) => {

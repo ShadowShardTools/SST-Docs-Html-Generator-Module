@@ -1,4 +1,5 @@
 ﻿import type { HeaderBranding, StyleTheme } from "@shadow-shard-tools/docs-core/types";
+
 import { classNames, escapeHtml } from "../../templates/helpers.js";
 import type { BreadcrumbSegment, NavCategoryEntry, NavDocumentEntry, NavigationIndex } from "../../types/index.js";
 

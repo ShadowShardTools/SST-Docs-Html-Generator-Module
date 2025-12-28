@@ -1,4 +1,5 @@
 import type { HeaderBranding, StyleTheme } from "@shadow-shard-tools/docs-core/types";
+
 import { classNames, escapeHtml } from "../../templates/helpers.js";
 import { renderBlocks } from "../../templates/renderBlocks.js";
 import type {
@@ -7,6 +8,7 @@ import type {
   NavigationIndex,
   RenderContext,
 } from "../../types/index.js";
+
 import { renderPageShell } from "./pageShell.js";
 
 const fileHeaderIcon = `<svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>`;

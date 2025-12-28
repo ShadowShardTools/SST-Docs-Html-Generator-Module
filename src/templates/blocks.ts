@@ -1,11 +1,14 @@
-import { type CodeSection, CODE_LANGUAGE_CONFIG, validateScale, getResponsiveWidth, extractYouTubeId, isValidYouTubeId, type Content } from "@shadow-shard-tools/docs-core";
+import { type CodeSection, CODE_LANGUAGE_CONFIG, validateScale, getResponsiveWidth, extractYouTubeId, isValidYouTubeId, type Content, type SupportedLanguage } from "@shadow-shard-tools/docs-core";
 import { renderToString as renderKatexToString } from "katex";
+import Prism from "prismjs";
+import loadLanguages from "prismjs/components/index.js";
+
 import { resolveChartRenderWidth } from "../render/chartAssets.js";
 import type { BlockRenderer } from "../types/BlockRenderer.js";
 import type { RenderContext } from "../types/RenderContext.js";
+
 import { escapeHtml, getAlignment, slugFromTitle, getSpacingClass, classNames, getBlockSpacing, resolveAssetPath, renderFigureCaption } from "./helpers.js";
-import loadLanguages from "prismjs/components/index.js";
-import Prism from "prismjs";
+
 
 const buildSectionWrapper = (spacingClass: string, inner: string) => {
   if (!spacingClass) return inner;
@@ -275,9 +278,12 @@ const normaliseCodeSections = (block: Content): CodeSection[] => {
   }
 
   if (data.content) {
+    const language = normalizePrismLanguage(
+      data.language ?? "plaintext",
+    ) as SupportedLanguage;
     return [
       {
-        language: (data.language ?? "plaintext") as any,
+        language,
         content: data.content,
         filename: data.name,
       },

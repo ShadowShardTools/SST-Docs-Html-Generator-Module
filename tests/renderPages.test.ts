@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
 import type { ResolvedSstDocsConfig, StyleTheme } from "@shadow-shard-tools/docs-core/types";
-import { renderDocumentPage } from "../src/render/structure/renderDocument.ts";
-import { renderCategoryPage } from "../src/render/structure/renderCategory.ts";
+import { describe, expect, it } from "vitest";
+
 import { buildNavigationIndex } from "../src/render/structure/navigation.ts";
+import { renderCategoryPage } from "../src/render/structure/renderCategory.ts";
+import { renderDocumentPage } from "../src/render/structure/renderDocument.ts";
 import type { VersionRenderEntry } from "../src/types/index.js";
 
 const createDocsConfig = (

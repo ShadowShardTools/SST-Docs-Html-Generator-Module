@@ -1,6 +1,7 @@
 import { mkdtemp, readdir, readFile, rm, mkdir } from "node:fs/promises";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const renderCalls: Array<{ width: number; height: number }> = [];
@@ -43,18 +44,19 @@ vi.mock("chartjs-node-canvas", () => {
   return { ChartJSNodeCanvas };
 });
 
-const chartModulePromise = import("../src/render/chartAssets.ts");
+const importChartModule = () => import("../src/render/chartAssets.ts");
 
 describe("chart assets utilities", () => {
   beforeEach(() => {
     renderCalls.length = 0;
     canvasInstances.length = 0;
+    vi.resetModules();
     vi.clearAllMocks();
   });
 
   it("computes chart dimensions within expected bounds", async () => {
     const { resolveChartRenderWidth, resolveChartRenderHeight } =
-      await chartModulePromise;
+      await importChartModule();
 
     expect(resolveChartRenderWidth()).toBe(896);
     expect(resolveChartRenderWidth(0.2)).toBe(360);
@@ -65,7 +67,7 @@ describe("chart assets utilities", () => {
   });
 
   it("generates and retrieves chart assets", async () => {
-    const { ChartAssetManager } = await chartModulePromise;
+    const { ChartAssetManager } = await importChartModule();
 
     const tempRoot = await mkdtemp(join(tmpdir(), "sst-chart-assets-"));
     const versionOutDir = join(tempRoot, "out");

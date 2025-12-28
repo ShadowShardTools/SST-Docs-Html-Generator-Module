@@ -1,6 +1,8 @@
 import type { HeaderBranding, StyleTheme } from "@shadow-shard-tools/docs-core/types";
+
 import { classNames, escapeHtml } from "../../templates/helpers.js";
 import type { BreadcrumbSegment, NavigationIndex } from "../../types/index.js";
+
 import { renderPageShell } from "./pageShell.js";
 
 const renderCategorySummaries = (

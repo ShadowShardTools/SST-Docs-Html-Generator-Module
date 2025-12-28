@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+
 import {
   createLogger,
   loadProducts,
@@ -8,8 +9,9 @@ import {
   type Product,
   type Version,
 } from "@shadow-shard-tools/docs-core";
-import type { RenderPlan } from "../types/index.js";
+
 import type { HtmlGeneratorRuntime } from "../index.js";
+import type { RenderPlan } from "../types/index.js";
 
 export async function buildVersionRenderPlan(params: {
   config: HtmlGeneratorRuntime;
