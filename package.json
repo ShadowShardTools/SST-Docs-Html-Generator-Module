@@ -16,7 +16,8 @@
     "sst-docs-html": "./dist/cli.js"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
   },
   "exports": {
     ".": {
