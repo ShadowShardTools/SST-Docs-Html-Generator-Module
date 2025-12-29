@@ -1,6 +1,6 @@
 {
   "name": "@shadow-shard-tools/docs-html-generator",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Static HTML generator for SST Docs content.",
   "license": "MIT",
   "type": "module",
