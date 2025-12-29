@@ -1,3 +1,5 @@
+import "../utilities/ensureAppRootPath.js";
+
 import { type CodeSection, CODE_LANGUAGE_CONFIG, validateScale, getResponsiveWidth, extractYouTubeId, isValidYouTubeId, type Content, type SupportedLanguage } from "@shadow-shard-tools/docs-core";
 import { renderToString as renderKatexToString } from "katex";
 import Prism from "prismjs";

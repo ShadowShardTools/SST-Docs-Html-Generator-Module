@@ -2,6 +2,8 @@
 import { readFile } from "node:fs/promises";
 import { argv, exit } from "node:process";
 
+import "./utilities/ensureAppRootPath.js";
+
 import { createLogger, pathExists, resolveAgainstProjectRoot } from "@shadow-shard-tools/docs-core";
 import fg from "fast-glob";
 

@@ -1,3 +1,5 @@
+import "../utilities/ensureAppRootPath.js";
+
 import { ALIGNMENT_CLASSES, slugify, SPACING_CLASSES, type Content } from "@shadow-shard-tools/docs-core";
 
 import type { RenderContext } from "../types/index.js";

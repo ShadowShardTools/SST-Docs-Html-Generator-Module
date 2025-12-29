@@ -8,6 +8,8 @@ import {
 } from "node:fs/promises";
 import { resolve, join, dirname, normalize, relative } from "node:path";
 
+import "../utilities/ensureAppRootPath.js";
+
 import { resolveAgainstProjectRoot } from "@shadow-shard-tools/docs-core";
 import type { Logger } from "@shadow-shard-tools/docs-core/types";
 

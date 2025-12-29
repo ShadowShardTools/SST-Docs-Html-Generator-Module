@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 import { argv, exit } from "node:process";
 
+import "./utilities/ensureAppRootPath.js";
+
 import {
   createLogger,
   defaultTheme,

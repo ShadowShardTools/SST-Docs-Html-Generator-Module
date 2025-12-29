@@ -1,5 +1,7 @@
 import { resolve } from "node:path";
 
+import "../utilities/ensureAppRootPath.js";
+
 import {
   createLogger,
   loadProducts,
